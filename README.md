@@ -40,3 +40,20 @@ npm run dev
 ```
 
 前端開發伺服器會把 `/api` 與 `/uploads` 轉發到 `http://127.0.0.1:3001`。
+
+## 上線（GitHub + Vercel + Neon）
+
+程式已推到 https://github.com/steven-gold/shop 。本機沒有 `DATABASE_URL` 時仍使用 `backend/data.json`。
+
+1. 到 [Neon](https://console.neon.tech/) 新建專案，複製 Connection string（`postgresql://...`）
+2. 到 [Vercel](https://vercel.com/new) Import `steven-gold/shop`
+3. 在 Vercel 專案 Environment Variables 新增：
+
+```
+DATABASE_URL=postgresql://...你的 Neon 連線字串
+JWT_SECRET=自訂一串隨機密鑰
+```
+
+4. Deploy。首次 API 會自動建立資料表並寫入示範商品。
+
+示範帳號與本機相同。

@@ -2,30 +2,25 @@ const express = require('express')
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
 const path = require('path')
-const fs = require('fs')
 const multer = require('multer')
-const { load, save, nextId, hashPassword, verifyPassword } = require('./db')
+const { load, save, nextId, hashPassword, verifyPassword, getUpload, putUpload } = require('./db')
 const { categoryFromBody } = require('./cms')
 
 const app = express()
 const PORT = process.env.PORT || 3001
 const SECRET = process.env.JWT_SECRET || 'aurora-princess-demo-secret'
-const UPLOAD_DIR = path.join(__dirname, 'uploads')
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true })
 
 app.use(cors())
 app.use(express.json({ limit: '8mb' }))
-app.use('/uploads', express.static(UPLOAD_DIR))
 
-const storage = multer.diskStorage({
-  destination: UPLOAD_DIR,
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname || '').toLowerCase()
-    const safe = /^\.(jpe?g|png|gif|webp|svg|ico)$/.test(ext) ? ext : '.jpg'
-    cb(null, Date.now() + '-' + Math.random().toString(36).slice(2, 8) + safe)
-  }
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } })
+
+app.get('/uploads/:name', async (req, res) => {
+  const file = await getUpload(req.params.name)
+  if (!file) return res.status(404).end()
+  res.set('Content-Type', file.mime)
+  res.send(file.buffer)
 })
-const upload = multer({ storage, limits: { fileSize: 8 * 1024 * 1024 } })
 
 function publicProduct(p) {
   return {
@@ -82,15 +77,15 @@ function matchCategory(data, product, categoryId) {
   return false
 }
 
-app.get('/api/health', (_req, res) => res.json({ ok: true }))
+app.get('/api/health', async (_req, res) => res.json({ ok: true }))
 
-app.get('/api/site', (_req, res) => {
-  const data = load()
+app.get('/api/site', async (_req, res) => {
+  const data = await load()
   res.json(data.site)
 })
 
-app.get('/api/cms', (_req, res) => {
-  const data = load()
+app.get('/api/cms', async (_req, res) => {
+  const data = await load()
   res.json({
     site: data.site,
     pages: data.pages || [],
@@ -100,13 +95,13 @@ app.get('/api/cms', (_req, res) => {
   })
 })
 
-app.get('/api/banners', (_req, res) => {
-  const data = load()
+app.get('/api/banners', async (_req, res) => {
+  const data = await load()
   res.json([...data.banners].sort((a, b) => a.sort - b.sort))
 })
 
-app.get('/api/categories', (_req, res) => {
-  const data = load()
+app.get('/api/categories', async (_req, res) => {
+  const data = await load()
   const counts = {}
   for (const p of data.products) {
     counts[p.categoryId] = (counts[p.categoryId] || 0) + 1
@@ -120,8 +115,8 @@ app.get('/api/categories', (_req, res) => {
   res.json(list)
 })
 
-app.get('/api/home', (_req, res) => {
-  const data = load()
+app.get('/api/home', async (_req, res) => {
+  const data = await load()
   const featured = data.products.filter((p) => p.featured).map(publicProduct)
   const fallback = (data.products[0] && data.products[0].image) || ''
   let tiles = data.categories
@@ -151,8 +146,8 @@ app.get('/api/home', (_req, res) => {
   })
 })
 
-app.get('/api/products', (req, res) => {
-  const data = load()
+app.get('/api/products', async (req, res) => {
+  const data = await load()
   const { category, q, page = 1, pageSize = 12, sort } = req.query
   let list = data.products.filter((p) => matchCategory(data, p, category))
   if (q) {
@@ -169,8 +164,8 @@ app.get('/api/products', (req, res) => {
   res.json({ items, total, page: p, pageSize: size, pages: Math.ceil(total / size) || 1 })
 })
 
-app.get('/api/products/:id', (req, res) => {
-  const data = load()
+app.get('/api/products/:id', async (req, res) => {
+  const data = await load()
   const product = data.products.find((p) => p.id === Number(req.params.id))
   if (!product) return res.status(404).json({ message: '找不到商品' })
   const related = data.products
@@ -180,8 +175,8 @@ app.get('/api/products/:id', (req, res) => {
   res.json({ ...publicProduct(product), related })
 })
 
-app.get('/api/news', (req, res) => {
-  const data = load()
+app.get('/api/news', async (req, res) => {
+  const data = await load()
   const cid = Number(req.query.category || 0)
   let list = [...data.news]
   if (cid) list = list.filter((n) => n.categoryId === cid)
@@ -189,26 +184,26 @@ app.get('/api/news', (req, res) => {
   res.json({ categories: data.newsCategories, items: list })
 })
 
-app.get('/api/news/:id', (req, res) => {
-  const data = load()
+app.get('/api/news/:id', async (req, res) => {
+  const data = await load()
   const item = data.news.find((n) => n.id === Number(req.params.id))
   if (!item) return res.status(404).json({ message: '找不到文章' })
   const category = data.newsCategories.find((c) => c.id === item.categoryId)
   res.json({ ...item, categoryName: category ? category.name : '' })
 })
 
-app.get('/api/stores', (_req, res) => {
-  res.json(load().stores)
+app.get('/api/stores', async (_req, res) => {
+  res.json((await load()).stores)
 })
 
-app.get('/api/faqs', (_req, res) => {
-  res.json(load().faqs)
+app.get('/api/faqs', async (_req, res) => {
+  res.json((await load()).faqs)
 })
 
-app.post('/api/contact', (req, res) => {
+app.post('/api/contact', async (req, res) => {
   const { name, email, phone, subject, content } = req.body || {}
   if (!name || !email || !content) return res.status(400).json({ message: '請填寫姓名、Email 與內容' })
-  const data = load()
+  const data = await load()
   data.messages.push({
     id: nextId(data),
     name,
@@ -219,14 +214,14 @@ app.post('/api/contact', (req, res) => {
     read: false,
     createdAt: new Date().toISOString()
   })
-  save(data)
+  await save(data)
   res.json({ ok: true })
 })
 
-app.post('/api/subscribe', (req, res) => {
+app.post('/api/subscribe', async (req, res) => {
   const { name, email, phone, childAge } = req.body || {}
   if (!name || !email) return res.status(400).json({ message: '請填寫姓名與 Email' })
-  const data = load()
+  const data = await load()
   data.subscribers.push({
     id: nextId(data),
     name,
@@ -235,14 +230,14 @@ app.post('/api/subscribe', (req, res) => {
     childAge: childAge || '',
     createdAt: new Date().toISOString()
   })
-  save(data)
+  await save(data)
   res.json({ ok: true })
 })
 
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
   const { email, password, name, phone } = req.body || {}
   if (!email || !password || !name) return res.status(400).json({ message: '請填寫帳號、密碼與姓名' })
-  const data = load()
+  const data = await load()
   if (data.users.find((u) => u.email.toLowerCase() === email.toLowerCase())) {
     return res.status(400).json({ message: '此帳號已被註冊' })
   }
@@ -256,13 +251,13 @@ app.post('/api/auth/register', (req, res) => {
     createdAt: new Date().toISOString()
   }
   data.users.push(user)
-  save(data)
+  await save(data)
   res.json({ token: tokenFor(user), user: safeUser(user) })
 })
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body || {}
-  const data = load()
+  const data = await load()
   const user = data.users.find((u) => u.email.toLowerCase() === String(email || '').toLowerCase())
   if (!user || !verifyPassword(password, user.password)) {
     return res.status(400).json({ message: '帳號或密碼不正確' })
@@ -270,26 +265,26 @@ app.post('/api/auth/login', (req, res) => {
   res.json({ token: tokenFor(user), user: safeUser(user) })
 })
 
-app.get('/api/auth/me', auth, (req, res) => {
-  const data = load()
+app.get('/api/auth/me', auth, async (req, res) => {
+  const data = await load()
   const user = data.users.find((u) => u.id === req.user.id)
   if (!user) return res.status(401).json({ message: '帳號不存在' })
   res.json(safeUser(user))
 })
 
-app.put('/api/auth/profile', auth, (req, res) => {
-  const data = load()
+app.put('/api/auth/profile', auth, async (req, res) => {
+  const data = await load()
   const user = data.users.find((u) => u.id === req.user.id)
   if (!user) return res.status(404).json({ message: '帳號不存在' })
   user.name = req.body.name || user.name
   user.phone = req.body.phone || user.phone
   if (req.body.password) user.password = hashPassword(req.body.password)
-  save(data)
+  await save(data)
   res.json(safeUser(user))
 })
 
-app.get('/api/cart', auth, (req, res) => {
-  const data = load()
+app.get('/api/cart', auth, async (req, res) => {
+  const data = await load()
   const cart = data.carts[req.user.id] || []
   const items = cart.map((line) => {
     const product = data.products.find((p) => p.id === line.productId)
@@ -305,9 +300,9 @@ app.get('/api/cart', auth, (req, res) => {
   res.json({ items, total })
 })
 
-app.post('/api/cart', auth, (req, res) => {
+app.post('/api/cart', auth, async (req, res) => {
   const { productId, size, qty = 1 } = req.body || {}
-  const data = load()
+  const data = await load()
   const product = data.products.find((p) => p.id === Number(productId))
   if (!product) return res.status(404).json({ message: '找不到商品' })
   const cart = data.carts[req.user.id] || []
@@ -315,31 +310,31 @@ app.post('/api/cart', auth, (req, res) => {
   if (exist) exist.qty += Number(qty) || 1
   else cart.push({ id: nextId(data), productId: product.id, size: size || (product.sizes[0] || ''), qty: Number(qty) || 1 })
   data.carts[req.user.id] = cart
-  save(data)
+  await save(data)
   res.json({ ok: true, count: cart.reduce((s, i) => s + i.qty, 0) })
 })
 
-app.put('/api/cart/:id', auth, (req, res) => {
-  const data = load()
+app.put('/api/cart/:id', auth, async (req, res) => {
+  const data = await load()
   const cart = data.carts[req.user.id] || []
   const line = cart.find((l) => l.id === Number(req.params.id))
   if (!line) return res.status(404).json({ message: '購物車沒有此商品' })
   line.qty = Math.max(1, Number(req.body.qty) || 1)
-  save(data)
+  await save(data)
   res.json({ ok: true })
 })
 
-app.delete('/api/cart/:id', auth, (req, res) => {
-  const data = load()
+app.delete('/api/cart/:id', auth, async (req, res) => {
+  const data = await load()
   data.carts[req.user.id] = (data.carts[req.user.id] || []).filter((l) => l.id !== Number(req.params.id))
-  save(data)
+  await save(data)
   res.json({ ok: true })
 })
 
-app.post('/api/orders', auth, (req, res) => {
+app.post('/api/orders', auth, async (req, res) => {
   const { receiver, phone, address, note } = req.body || {}
   if (!receiver || !phone || !address) return res.status(400).json({ message: '請填寫收件資訊' })
-  const data = load()
+  const data = await load()
   const cart = data.carts[req.user.id] || []
   if (!cart.length) return res.status(400).json({ message: '購物車是空的' })
   const items = cart.map((line) => {
@@ -362,18 +357,18 @@ app.post('/api/orders', auth, (req, res) => {
   }
   data.orders.unshift(order)
   data.carts[req.user.id] = []
-  save(data)
+  await save(data)
   res.json(order)
 })
 
-app.get('/api/orders', auth, (req, res) => {
-  const data = load()
+app.get('/api/orders', auth, async (req, res) => {
+  const data = await load()
   const list = data.orders.filter((o) => o.userId === req.user.id)
   res.json(list)
 })
 
-app.get('/api/admin/stats', auth, adminOnly, (_req, res) => {
-  const data = load()
+app.get('/api/admin/stats', auth, adminOnly, async (_req, res) => {
+  const data = await load()
   res.json({
     products: data.products.length,
     orders: data.orders.length,
@@ -384,12 +379,12 @@ app.get('/api/admin/stats', auth, adminOnly, (_req, res) => {
   })
 })
 
-app.get('/api/admin/products', auth, adminOnly, (_req, res) => {
-  res.json(load().products.map(publicProduct))
+app.get('/api/admin/products', auth, adminOnly, async (_req, res) => {
+  res.json((await load()).products.map(publicProduct))
 })
 
-app.post('/api/admin/products', auth, adminOnly, (req, res) => {
-  const data = load()
+app.post('/api/admin/products', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const p = req.body || {}
   const product = {
     id: nextId(data),
@@ -408,12 +403,12 @@ app.post('/api/admin/products', auth, adminOnly, (req, res) => {
     desc: p.desc || ''
   }
   data.products.unshift(product)
-  save(data)
+  await save(data)
   res.json(publicProduct(product))
 })
 
-app.put('/api/admin/products/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.put('/api/admin/products/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const product = data.products.find((p) => p.id === Number(req.params.id))
   if (!product) return res.status(404).json({ message: '找不到商品' })
   const p = req.body || {}
@@ -432,60 +427,60 @@ app.put('/api/admin/products/:id', auth, adminOnly, (req, res) => {
     featured: p.featured != null ? !!p.featured : product.featured,
     desc: p.desc ?? product.desc
   })
-  save(data)
+  await save(data)
   res.json(publicProduct(product))
 })
 
-app.delete('/api/admin/products/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.delete('/api/admin/products/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   data.products = data.products.filter((p) => p.id !== Number(req.params.id))
-  save(data)
+  await save(data)
   res.json({ ok: true })
 })
 
-app.get('/api/admin/orders', auth, adminOnly, (_req, res) => {
-  res.json(load().orders)
+app.get('/api/admin/orders', auth, adminOnly, async (_req, res) => {
+  res.json((await load()).orders)
 })
 
-app.put('/api/admin/orders/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.put('/api/admin/orders/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const order = data.orders.find((o) => o.id === Number(req.params.id))
   if (!order) return res.status(404).json({ message: '找不到訂單' })
   order.status = req.body.status || order.status
-  save(data)
+  await save(data)
   res.json(order)
 })
 
-app.get('/api/admin/members', auth, adminOnly, (_req, res) => {
-  res.json(load().users.filter((u) => u.role === 'member').map(safeUser))
+app.get('/api/admin/members', auth, adminOnly, async (_req, res) => {
+  res.json((await load()).users.filter((u) => u.role === 'member').map(safeUser))
 })
 
-app.get('/api/admin/messages', auth, adminOnly, (_req, res) => {
-  res.json(load().messages)
+app.get('/api/admin/messages', auth, adminOnly, async (_req, res) => {
+  res.json((await load()).messages)
 })
 
-app.put('/api/admin/messages/:id/read', auth, adminOnly, (req, res) => {
-  const data = load()
+app.put('/api/admin/messages/:id/read', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const msg = data.messages.find((m) => m.id === Number(req.params.id))
   if (!msg) return res.status(404).json({ message: '找不到留言' })
   msg.read = true
-  save(data)
+  await save(data)
   res.json(msg)
 })
 
-app.get('/api/admin/banners', auth, adminOnly, (_req, res) => res.json(load().banners))
-app.put('/api/admin/banners/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.get('/api/admin/banners', auth, adminOnly, async (_req, res) => res.json((await load()).banners))
+app.put('/api/admin/banners/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const item = data.banners.find((b) => b.id === Number(req.params.id))
   if (!item) return res.status(404).json({ message: '找不到輪播' })
   Object.assign(item, req.body)
-  save(data)
+  await save(data)
   res.json(item)
 })
 
-app.get('/api/admin/news', auth, adminOnly, (_req, res) => res.json(load().news))
-app.post('/api/admin/news', auth, adminOnly, (req, res) => {
-  const data = load()
+app.get('/api/admin/news', auth, adminOnly, async (_req, res) => res.json((await load()).news))
+app.post('/api/admin/news', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const item = {
     id: nextId(data),
     categoryId: Number(req.body.categoryId) || 10,
@@ -496,82 +491,86 @@ app.post('/api/admin/news', auth, adminOnly, (req, res) => {
     content: req.body.content || ''
   }
   data.news.unshift(item)
-  save(data)
+  await save(data)
   res.json(item)
 })
-app.put('/api/admin/news/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.put('/api/admin/news/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const item = data.news.find((n) => n.id === Number(req.params.id))
   if (!item) return res.status(404).json({ message: '找不到文章' })
   Object.assign(item, req.body)
-  save(data)
+  await save(data)
   res.json(item)
 })
-app.delete('/api/admin/news/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.delete('/api/admin/news/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   data.news = data.news.filter((n) => n.id !== Number(req.params.id))
-  save(data)
+  await save(data)
   res.json({ ok: true })
 })
 
-app.get('/api/admin/stores', auth, adminOnly, (_req, res) => res.json(load().stores))
-app.post('/api/admin/stores', auth, adminOnly, (req, res) => {
-  const data = load()
+app.get('/api/admin/stores', auth, adminOnly, async (_req, res) => res.json((await load()).stores))
+app.post('/api/admin/stores', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const item = { id: nextId(data), ...req.body }
   data.stores.push(item)
-  save(data)
+  await save(data)
   res.json(item)
 })
-app.put('/api/admin/stores/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.put('/api/admin/stores/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const item = data.stores.find((s) => s.id === Number(req.params.id))
   if (!item) return res.status(404).json({ message: '找不到據點' })
   Object.assign(item, req.body)
-  save(data)
+  await save(data)
   res.json(item)
 })
-app.delete('/api/admin/stores/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.delete('/api/admin/stores/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   data.stores = data.stores.filter((s) => s.id !== Number(req.params.id))
-  save(data)
+  await save(data)
   res.json({ ok: true })
 })
 
-app.post('/api/admin/upload', auth, adminOnly, upload.single('file'), (req, res) => {
+app.post('/api/admin/upload', auth, adminOnly, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: '請選擇檔案' })
-  res.json({ url: '/uploads/' + req.file.filename, name: req.file.originalname })
+  const ext = path.extname(req.file.originalname || '').toLowerCase()
+  const safe = /^\.(jpe?g|png|gif|webp|svg|ico)$/.test(ext) ? ext : '.jpg'
+  const filename = Date.now() + '-' + Math.random().toString(36).slice(2, 8) + safe
+  await putUpload(filename, req.file.buffer, req.file.mimetype)
+  res.json({ url: '/uploads/' + filename, name: req.file.originalname })
 })
 
-app.get('/api/admin/categories', auth, adminOnly, (_req, res) => res.json(load().categories))
-app.post('/api/admin/categories', auth, adminOnly, (req, res) => {
-  const data = load()
+app.get('/api/admin/categories', auth, adminOnly, async (_req, res) => res.json((await load()).categories))
+app.post('/api/admin/categories', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const item = categoryFromBody(req.body || {}, nextId(data))
   data.categories.push(item)
-  save(data)
+  await save(data)
   res.json(item)
 })
-app.put('/api/admin/categories/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.put('/api/admin/categories/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const idx = data.categories.findIndex((c) => c.id === Number(req.params.id))
   if (idx < 0) return res.status(404).json({ message: '找不到分類' })
   data.categories[idx] = categoryFromBody({ ...data.categories[idx], ...(req.body || {}) }, data.categories[idx].id)
-  save(data)
+  await save(data)
   res.json(data.categories[idx])
 })
-app.delete('/api/admin/categories/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.delete('/api/admin/categories/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const id = Number(req.params.id)
   if (data.categories.some((c) => c.parentId === id)) {
     return res.status(400).json({ message: '請先刪除子分類' })
   }
   data.categories = data.categories.filter((c) => c.id !== id)
-  save(data)
+  await save(data)
   res.json({ ok: true })
 })
 
-app.get('/api/admin/news-categories', auth, adminOnly, (_req, res) => res.json(load().newsCategories))
-app.post('/api/admin/news-categories', auth, adminOnly, (req, res) => {
-  const data = load()
+app.get('/api/admin/news-categories', auth, adminOnly, async (_req, res) => res.json((await load()).newsCategories))
+app.post('/api/admin/news-categories', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const b = req.body || {}
   const item = {
     id: nextId(data),
@@ -585,27 +584,27 @@ app.post('/api/admin/news-categories', auth, adminOnly, (req, res) => {
     sort: Number(b.sort) || 0
   }
   data.newsCategories.push(item)
-  save(data)
+  await save(data)
   res.json(item)
 })
-app.put('/api/admin/news-categories/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.put('/api/admin/news-categories/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const item = data.newsCategories.find((c) => c.id === Number(req.params.id))
   if (!item) return res.status(404).json({ message: '找不到文章分類' })
   Object.assign(item, req.body || {})
-  save(data)
+  await save(data)
   res.json(item)
 })
-app.delete('/api/admin/news-categories/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.delete('/api/admin/news-categories/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   data.newsCategories = data.newsCategories.filter((c) => c.id !== Number(req.params.id))
-  save(data)
+  await save(data)
   res.json({ ok: true })
 })
 
-app.get('/api/admin/menus', auth, adminOnly, (_req, res) => res.json(load().menus || []))
-app.post('/api/admin/menus', auth, adminOnly, (req, res) => {
-  const data = load()
+app.get('/api/admin/menus', auth, adminOnly, async (_req, res) => res.json((await load()).menus || []))
+app.post('/api/admin/menus', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const b = req.body || {}
   const item = {
     id: nextId(data),
@@ -618,11 +617,11 @@ app.post('/api/admin/menus', auth, adminOnly, (req, res) => {
   }
   data.menus = data.menus || []
   data.menus.push(item)
-  save(data)
+  await save(data)
   res.json(item)
 })
-app.put('/api/admin/menus/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.put('/api/admin/menus/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const item = (data.menus || []).find((m) => m.id === Number(req.params.id))
   if (!item) return res.status(404).json({ message: '找不到選單' })
   const b = req.body || {}
@@ -634,20 +633,20 @@ app.put('/api/admin/menus/:id', auth, adminOnly, (req, res) => {
     sort: b.sort != null ? Number(b.sort) : item.sort,
     visible: b.visible != null ? !!b.visible : item.visible
   })
-  save(data)
+  await save(data)
   res.json(item)
 })
-app.delete('/api/admin/menus/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.delete('/api/admin/menus/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const id = Number(req.params.id)
   data.menus = (data.menus || []).filter((m) => m.id !== id && m.parentId !== id)
-  save(data)
+  await save(data)
   res.json({ ok: true })
 })
 
-app.get('/api/admin/pages', auth, adminOnly, (_req, res) => res.json(load().pages || []))
-app.put('/api/admin/pages/:id', auth, adminOnly, (req, res) => {
-  const data = load()
+app.get('/api/admin/pages', auth, adminOnly, async (_req, res) => res.json((await load()).pages || []))
+app.put('/api/admin/pages/:id', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const item = (data.pages || []).find((p) => p.id === Number(req.params.id) || p.slug === req.params.id)
   if (!item) return res.status(404).json({ message: '找不到頁面' })
   const b = req.body || {}
@@ -664,29 +663,37 @@ app.put('/api/admin/pages/:id', auth, adminOnly, (req, res) => {
     seoImage: b.seoImage ?? item.seoImage,
     extras: b.extras != null ? b.extras : item.extras
   })
-  save(data)
+  await save(data)
   res.json(item)
 })
 
-app.put('/api/admin/site', auth, adminOnly, (req, res) => {
-  const data = load()
+app.put('/api/admin/site', auth, adminOnly, async (req, res) => {
+  const data = await load()
   const b = req.body || {}
   Object.assign(data.site, b)
   if (Array.isArray(b.contacts)) data.site.contacts = b.contacts
   if (b.seo) data.site.seo = { ...data.site.seo, ...b.seo }
   if (b.home) data.site.home = { ...data.site.home, ...b.home }
-  save(data)
+  await save(data)
   res.json(data.site)
 })
 
-app.get('/api/admin/subscribers', auth, adminOnly, (_req, res) => res.json(load().subscribers))
+app.get('/api/admin/subscribers', auth, adminOnly, async (_req, res) => res.json((await load()).subscribers))
 
 app.use((err, _req, res, _next) => {
   console.error(err)
   res.status(500).json({ message: '伺服器發生錯誤' })
 })
 
-app.listen(PORT, '0.0.0.0', () => {
-  load()
-  console.log(`AURORA API running on http://127.0.0.1:${PORT}`)
-})
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    load()
+      .then(() => console.log(`AURORA API running on http://127.0.0.1:${PORT}`))
+      .catch((err) => {
+        console.error(err)
+        process.exit(1)
+      })
+  })
+}
+
+module.exports = app
