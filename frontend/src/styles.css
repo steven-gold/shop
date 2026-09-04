@@ -22,6 +22,7 @@ body {
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
 button, input, textarea, select { font-family: inherit; }
+button { cursor: pointer; }
 
 .wide { width: min(1280px, calc(100% - 48px)); margin: 0 auto; }
 .serif { font-family: 'Cormorant Garamond', serif; }
@@ -142,9 +143,11 @@ nav.desk > .item:hover .mega { display: block; }
 .hero .veil {
   position: absolute; inset: 0;
   background: linear-gradient(90deg, rgba(20,14,12,0.35), rgba(20,14,12,0.05) 55%, rgba(20,14,12,0.4));
+  pointer-events: none;
 }
 .hero .copy {
   position: absolute;
+  z-index: 2;
   right: 10%;
   top: 42%;
   color: #fff;
@@ -170,10 +173,13 @@ nav.desk > .item:hover .mega { display: block; }
   letter-spacing: 0.2em;
   font-size: 12px;
   transition: 0.25s;
+  cursor: pointer;
+  background: transparent;
 }
 .ghost-btn:hover { background: #fff; color: var(--ink); }
 .hero-nav {
   position: absolute;
+  z-index: 2;
   right: 8%;
   bottom: 8%;
   color: #fff;
@@ -389,6 +395,20 @@ footer.site a, footer.site p { color: #cbbfb4; font-size: 14px; line-height: 2; 
 .table { width: 100%; border-collapse: collapse; }
 .table th, .table td { border-bottom: 1px solid var(--line); padding: 12px 8px; text-align: left; font-size: 14px; vertical-align: top; }
 .qty { width: 64px; padding: 6px; }
+.table tbody tr.item-row { cursor: pointer; }
+.table tbody tr.item-row.on td { background: #f7f0e8; }
+.table tbody tr.inline-edit { cursor: default; }
+.table tbody tr.inline-edit td { background: #fffdfb; padding: 4px 8px 18px; }
+.table tbody tr.inline-edit .form { max-width: none; padding: 12px 4px 0; }
+.table .ghost-btn { padding: 6px 12px; letter-spacing: 0.08em; }
+.item-list { display: grid; gap: 0; }
+.item-block { border-bottom: 1px solid var(--line); background: #fff; }
+.item-hit { display: block; width: 100%; text-align: left; background: transparent; border: 0; padding: 12px 14px; cursor: pointer; color: var(--ink-soft); }
+.item-hit.child { padding-left: 28px; font-size: 13px; }
+.item-hit.add { color: var(--rose); }
+.item-hit.on { background: #f7f0e8; color: var(--ink); }
+.inline-panel { margin: 0 12px 16px; padding: 16px; background: #fffdfb; border: 1px solid var(--line); }
+.inline-create { margin-bottom: 20px; }
 
 .admin {
   display: grid;
