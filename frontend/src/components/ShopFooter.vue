@@ -5,8 +5,8 @@
         <div class="logo">
           <img v-if="state.site?.logo" :src="state.site.logo" alt="" class="logo-mark invert" />
           <span class="word">
-            <strong>{{ state.site?.english || 'AURORA' }}</strong>
-            <span>{{ state.site?.name || '歐若拉公主童裝' }}</span>
+          <strong>{{ state.site?.english || 'RIKAI' }}</strong>
+          <span>{{ state.site?.name || '里海寵物' }}</span>
           </span>
         </div>
         <p>{{ state.site?.slogan }}</p>
@@ -21,13 +21,13 @@
         <router-link v-for="m in memberMenus" :key="m.id" :to="m.url">{{ m.name }}<br /></router-link>
       </div>
       <div>
-        <h4>STYLE BLOG</h4>
-        <p>{{ state.site?.home?.blogSubheading || '季節輪換總有新的故事值得期盼，穿搭靈感這裡找。' }}</p>
+        <h4>NEWS</h4>
+        <p>{{ state.site?.home?.blogSubheading || '飼養筆記、到貨公告與營養小知識。' }}</p>
         <router-link to="/blog" class="ghost-btn" style="margin-top:12px">view all</router-link>
       </div>
     </div>
     <div class="wide copy">
-      Copyright © 2026 {{ state.site?.name || '歐若拉公主童裝' }} {{ state.site?.english || 'AURORA' }} — All Rights Reserved.
+      Copyright © 2026 {{ state.site?.name || '里海寵物' }} {{ state.site?.english || 'RIKAI' }} — All Rights Reserved.
       <router-link to="/admin" class="admin-entry">管理後台</router-link>
     </div>
   </footer>
@@ -42,9 +42,9 @@ const footerMenus = computed(() => {
   const list = menusAt('footer')
   return list.length ? list : [
     { id: 1, name: '關於我們', url: '/about' },
-    { id: 2, name: '風格導覽 BLOG', url: '/blog' },
-    { id: 3, name: '產品介紹', url: '/products' },
-    { id: 4, name: '服務據點', url: '/stores' },
+    { id: 2, name: '最新訊息', url: '/blog' },
+    { id: 3, name: '商品列表', url: '/products' },
+    { id: 4, name: '門市據點', url: '/stores' },
     { id: 5, name: '聯絡我們', url: '/contact' }
   ]
 })
@@ -55,7 +55,7 @@ const memberMenus = computed(() => {
     { id: 2, name: '會員中心', url: '/member' },
     { id: 3, name: '購物須知', url: '/faq' },
     { id: 4, name: '隱私權政策', url: '/privacy' },
-    { id: 5, name: '童裝訂閱', url: '/subscribe' }
+    { id: 5, name: '訂單查詢', url: '/order-lookup' }
   ]
 })
 </script>

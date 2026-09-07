@@ -4,11 +4,11 @@ const jwt = require('jsonwebtoken')
 const path = require('path')
 const multer = require('multer')
 const { load, save, nextId, hashPassword, verifyPassword, getUpload, putUpload } = require('./db')
-const { categoryFromBody } = require('./cms')
+const { categoryFromBody, defaultShipping, defaultPayment } = require('./cms')
 
 const app = express()
 const PORT = process.env.PORT || 3001
-const SECRET = process.env.JWT_SECRET || 'aurora-princess-demo-secret'
+const SECRET = process.env.JWT_SECRET || 'rikai-pets-demo-secret'
 
 app.use(cors())
 app.use(express.json({ limit: '8mb' }))
@@ -67,14 +67,91 @@ function safeUser(u) {
   return { id: u.id, email: u.email, name: u.name, phone: u.phone || '', role: u.role, createdAt: u.createdAt }
 }
 
+function saleCategoryId(data) {
+  const found = (data.categories || []).find((c) => c.slug === 'sale')
+  return found ? found.id : 0
+}
+
 function matchCategory(data, product, categoryId) {
   const cid = Number(categoryId)
   if (!cid) return true
   if (product.categoryId === cid) return true
-  if (cid === 62 && (product.tags || []).includes('sale')) return true
+  const saleId = saleCategoryId(data)
+  if (saleId && cid === saleId && (product.tags || []).includes('sale')) return true
   const children = data.categories.filter((c) => c.parentId === cid).map((c) => c.id)
   if (children.includes(product.categoryId)) return true
   return false
+}
+
+function shippingConfig(site) {
+  const raw = (site && site.shipping) || defaultShipping()
+  const fallback = defaultShipping()
+  return {
+    freeOver: Number(raw.freeOver != null ? raw.freeOver : fallback.freeOver) || 0,
+    methods: (raw.methods && raw.methods.length ? raw.methods : fallback.methods).map((m) => ({
+      id: m.id,
+      name: m.name,
+      fee: Number(m.fee) || 0,
+      enabled: m.enabled !== false,
+      hint: m.hint || ''
+    }))
+  }
+}
+
+function paymentConfig(site) {
+  const raw = (site && site.payment) || defaultPayment()
+  const fallback = defaultPayment()
+  return {
+    methods: (raw.methods && raw.methods.length ? raw.methods : fallback.methods).map((m) => ({
+      id: m.id,
+      name: m.name,
+      enabled: m.enabled !== false,
+      hint: m.hint || ''
+    }))
+  }
+}
+
+function findEnabled(methods, id) {
+  return (methods || []).find((m) => m.id === id && m.enabled !== false) || null
+}
+
+function calcShippingFee(site, method, subtotal) {
+  if (!method) return 0
+  let fee = Number(method.fee) || 0
+  const freeOver = shippingConfig(site).freeOver
+  if (method.id !== 'pickup' && freeOver > 0 && Number(subtotal) >= freeOver) fee = 0
+  return fee
+}
+
+function publicOrder(o) {
+  return {
+    id: o.id,
+    orderNo: o.orderNo || ('#' + o.id),
+    items: o.items,
+    subtotal: o.subtotal != null ? o.subtotal : o.total,
+    shippingMethod: o.shippingMethod || '',
+    shippingLabel: o.shippingLabel || '',
+    shippingFee: Number(o.shippingFee) || 0,
+    paymentMethod: o.paymentMethod || '',
+    paymentLabel: o.paymentLabel || '',
+    storeBrand: o.storeBrand || '',
+    storeName: o.storeName || '',
+    total: o.total,
+    status: o.status,
+    receiver: o.receiver,
+    phone: o.phone,
+    address: o.address,
+    note: o.note || '',
+    createdAt: o.createdAt
+  }
+}
+
+function orderNoFor(id) {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `RK${y}${m}${day}${id}`
 }
 
 app.get('/api/health', async (_req, res) => res.json({ ok: true }))
@@ -103,9 +180,10 @@ app.get('/api/banners', async (_req, res) => {
 app.get('/api/categories', async (_req, res) => {
   const data = await load()
   const counts = {}
+  const saleId = saleCategoryId(data)
   for (const p of data.products) {
     counts[p.categoryId] = (counts[p.categoryId] || 0) + 1
-    if ((p.tags || []).includes('sale')) counts[62] = (counts[62] || 0) + 1
+    if (saleId && (p.tags || []).includes('sale')) counts[saleId] = (counts[saleId] || 0) + 1
   }
   const list = data.categories.map((c) => {
     const childIds = data.categories.filter((x) => x.parentId === c.id).map((x) => x.id)
@@ -198,6 +276,15 @@ app.get('/api/stores', async (_req, res) => {
 
 app.get('/api/faqs', async (_req, res) => {
   res.json((await load()).faqs)
+})
+
+app.get('/api/checkout-options', async (_req, res) => {
+  const data = await load()
+  res.json({
+    shipping: shippingConfig(data.site),
+    payment: paymentConfig(data.site),
+    stores: data.stores || []
+  })
 })
 
 app.post('/api/contact', async (req, res) => {
@@ -332,9 +419,24 @@ app.delete('/api/cart/:id', auth, async (req, res) => {
 })
 
 app.post('/api/orders', auth, async (req, res) => {
-  const { receiver, phone, address, note } = req.body || {}
-  if (!receiver || !phone || !address) return res.status(400).json({ message: '請填寫收件資訊' })
+  const { receiver, phone, address, note, shippingMethod, paymentMethod, storeBrand, storeName } = req.body || {}
+  if (!receiver || !phone) return res.status(400).json({ message: '請填寫收件人與電話' })
+  if (!shippingMethod) return res.status(400).json({ message: '請選出貨方式' })
+  if (!paymentMethod) return res.status(400).json({ message: '請選付款方式' })
   const data = await load()
+  const ship = findEnabled(shippingConfig(data.site).methods, shippingMethod)
+  const pay = findEnabled(paymentConfig(data.site).methods, paymentMethod)
+  if (!ship) return res.status(400).json({ message: '出貨方式無法使用' })
+  if (!pay) return res.status(400).json({ message: '付款方式無法使用' })
+  if (ship.id === 'home' && !String(address || '').trim()) {
+    return res.status(400).json({ message: '寄送到府請填寫地址' })
+  }
+  if (ship.id === 'cvs' && !String(storeName || '').trim()) {
+    return res.status(400).json({ message: '超商取貨請填寫門市名稱' })
+  }
+  if (ship.id === 'pickup' && !String(storeName || address || '').trim()) {
+    return res.status(400).json({ message: '請選擇自取門市' })
+  }
   const cart = data.carts[req.user.id] || []
   if (!cart.length) return res.status(400).json({ message: '購物車是空的' })
   const items = cart.map((line) => {
@@ -343,28 +445,61 @@ app.post('/api/orders', auth, async (req, res) => {
     if (product) product.stock = Math.max(0, product.stock - line.qty)
     return { productId: line.productId, name: product ? product.name : '', size: line.size, qty: line.qty, price }
   })
+  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0)
+  const shippingFee = calcShippingFee(data.site, ship, subtotal)
+  let dest = String(address || '').trim()
+  if (ship.id === 'cvs') {
+    dest = [storeBrand || '超商', storeName, address].filter(Boolean).join(' ')
+  } else if (ship.id === 'pickup') {
+    dest = storeName || dest
+  }
+  const id = nextId(data)
   const order = {
-    id: nextId(data),
+    id,
+    orderNo: orderNoFor(id),
     userId: req.user.id,
     items,
-    total: items.reduce((s, i) => s + i.price * i.qty, 0),
+    subtotal,
+    shippingMethod: ship.id,
+    shippingLabel: ship.name,
+    shippingFee,
+    paymentMethod: pay.id,
+    paymentLabel: pay.name,
+    storeBrand: storeBrand || '',
+    storeName: storeName || '',
+    total: subtotal + shippingFee,
     status: '待出貨',
     receiver,
     phone,
-    address,
+    address: dest,
     note: note || '',
     createdAt: new Date().toISOString()
   }
   data.orders.unshift(order)
   data.carts[req.user.id] = []
   await save(data)
-  res.json(order)
+  res.json(publicOrder(order))
 })
 
 app.get('/api/orders', auth, async (req, res) => {
   const data = await load()
-  const list = data.orders.filter((o) => o.userId === req.user.id)
+  const list = data.orders.filter((o) => o.userId === req.user.id).map(publicOrder)
   res.json(list)
+})
+
+app.post('/api/orders/lookup', async (req, res) => {
+  const { orderId, phone } = req.body || {}
+  if (!orderId || !phone) return res.status(400).json({ message: '請填寫訂單編號與電話' })
+  const data = await load()
+  const key = String(orderId).trim().replace(/^#/, '')
+  const tel = String(phone).replace(/\s+/g, '')
+  const order = data.orders.find((o) => {
+    const idMatch = String(o.id) === key || String(o.orderNo || '') === key
+    const phoneMatch = String(o.phone || '').replace(/\s+/g, '') === tel
+    return idMatch && phoneMatch
+  })
+  if (!order) return res.status(404).json({ message: '找不到這筆訂單' })
+  res.json(publicOrder(order))
 })
 
 app.get('/api/admin/stats', auth, adminOnly, async (_req, res) => {
@@ -439,16 +574,33 @@ app.delete('/api/admin/products/:id', auth, adminOnly, async (req, res) => {
 })
 
 app.get('/api/admin/orders', auth, adminOnly, async (_req, res) => {
-  res.json((await load()).orders)
+  res.json((await load()).orders.map(publicOrder))
 })
 
 app.put('/api/admin/orders/:id', auth, adminOnly, async (req, res) => {
   const data = await load()
   const order = data.orders.find((o) => o.id === Number(req.params.id))
   if (!order) return res.status(404).json({ message: '找不到訂單' })
-  order.status = req.body.status || order.status
+  const b = req.body || {}
+  if (b.status) order.status = b.status
+  if (b.shippingMethod) {
+    const ship = findEnabled(shippingConfig(data.site).methods, b.shippingMethod)
+    if (!ship) return res.status(400).json({ message: '出貨方式無法使用' })
+    const subtotal = order.subtotal != null ? order.subtotal : Number(order.total) - (Number(order.shippingFee) || 0)
+    order.subtotal = subtotal
+    order.shippingMethod = ship.id
+    order.shippingLabel = ship.name
+    order.shippingFee = calcShippingFee(data.site, ship, subtotal)
+    order.total = subtotal + order.shippingFee
+  }
+  if (b.paymentMethod) {
+    const pay = findEnabled(paymentConfig(data.site).methods, b.paymentMethod)
+    if (!pay) return res.status(400).json({ message: '付款方式無法使用' })
+    order.paymentMethod = pay.id
+    order.paymentLabel = pay.name
+  }
   await save(data)
-  res.json(order)
+  res.json(publicOrder(order))
 })
 
 app.get('/api/admin/members', auth, adminOnly, async (_req, res) => {
@@ -674,6 +826,8 @@ app.put('/api/admin/site', auth, adminOnly, async (req, res) => {
   if (Array.isArray(b.contacts)) data.site.contacts = b.contacts
   if (b.seo) data.site.seo = { ...data.site.seo, ...b.seo }
   if (b.home) data.site.home = { ...data.site.home, ...b.home }
+  if (b.shipping) data.site.shipping = b.shipping
+  if (b.payment) data.site.payment = b.payment
   await save(data)
   res.json(data.site)
 })
@@ -688,7 +842,7 @@ app.use((err, _req, res, _next) => {
 if (require.main === module) {
   app.listen(PORT, '0.0.0.0', () => {
     load()
-      .then(() => console.log(`AURORA API running on http://127.0.0.1:${PORT}`))
+        .then(() => console.log(`RIKAI API running on http://127.0.0.1:${PORT}`))
       .catch((err) => {
         console.error(err)
         process.exit(1)

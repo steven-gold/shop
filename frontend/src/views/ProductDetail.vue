@@ -15,8 +15,11 @@
           <b>{{ money(p.salePrice) }}</b>
         </div>
         <p style="line-height:1.9;color:var(--ink-soft)">{{ p.desc }}</p>
-        <p>顏色：{{ p.color }}　庫存：{{ p.stock }}</p>
-        <div class="size-list">
+        <p>
+          <span v-if="p.color">口味 / 顏色：{{ p.color }}　</span>
+          庫存：{{ p.stock }}
+        </p>
+        <div class="size-list" v-if="p.sizes?.length">
           <button v-for="s in p.sizes" :key="s" :class="{ on: size === s }" @click="size = s">{{ s }}</button>
         </div>
         <button class="solid-btn" @click="add">加入購物車</button>

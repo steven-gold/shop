@@ -8,7 +8,7 @@ const route = useRoute()
 function run() {
   const path = route.path
   if (path.startsWith('/admin')) {
-    document.title = '後台 | ' + (state.site?.name || 'AURORA')
+    document.title = '後台 | ' + (state.site?.name || 'RIKAI')
     return
   }
   const catId = Number(route.params.category || 0)

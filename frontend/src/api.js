@@ -1,8 +1,8 @@
 import { reactive } from 'vue'
 
 export const state = reactive({
-  token: localStorage.getItem('aurora_token') || '',
-  user: JSON.parse(localStorage.getItem('aurora_user') || 'null'),
+  token: localStorage.getItem('rikai_token') || '',
+  user: JSON.parse(localStorage.getItem('rikai_user') || 'null'),
   cartCount: 0,
   site: null,
   categories: [],
@@ -17,16 +17,16 @@ export const state = reactive({
 export function setSession(token, user) {
   state.token = token
   state.user = user
-  localStorage.setItem('aurora_token', token)
-  localStorage.setItem('aurora_user', JSON.stringify(user))
+  localStorage.setItem('rikai_token', token)
+  localStorage.setItem('rikai_user', JSON.stringify(user))
 }
 
 export function logout() {
   state.token = ''
   state.user = null
   state.cartCount = 0
-  localStorage.removeItem('aurora_token')
-  localStorage.removeItem('aurora_user')
+  localStorage.removeItem('rikai_token')
+  localStorage.removeItem('rikai_user')
 }
 
 export async function api(path, options = {}) {
@@ -73,7 +73,7 @@ export async function bootstrap() {
   if (state.token) {
     try {
       state.user = await api('/api/auth/me')
-      localStorage.setItem('aurora_user', JSON.stringify(state.user))
+      localStorage.setItem('rikai_user', JSON.stringify(state.user))
       await refreshCart()
     } catch {
       logout()
@@ -144,7 +144,7 @@ export function applyFavicon() {
 export function applySeo(page) {
   const site = state.site || {}
   const seo = site.seo || {}
-  const title = (page && (page.seoTitle || page.title)) || seo.title || site.name || '歐若拉公主童裝'
+  const title = (page && (page.seoTitle || page.title)) || seo.title || site.name || '里海寵物'
   document.title = title
   setMeta('description', (page && page.seoDescription) || seo.description || '')
   setMeta('keywords', (page && page.seoKeywords) || seo.keywords || '')

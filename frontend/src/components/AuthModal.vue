@@ -12,7 +12,7 @@
       </form>
       <div class="switch" @click="cycle">{{ hint }}</div>
       <p style="text-align:center;font-size:12px;color:#8a7d74;margin-top:18px">
-        示範會員 demo@aurora.tw / demo123<br />後台 admin@aurora.tw / aurora888
+        示範會員 demo@rikai.tw / demo123<br />後台 admin@rikai.tw / rikai888
       </p>
     </div>
   </div>
@@ -24,7 +24,7 @@ import { useRouter } from 'vue-router'
 import { api, refreshCart, setSession, state } from '../api'
 
 const router = useRouter()
-const email = ref('demo@aurora.tw')
+const email = ref('demo@rikai.tw')
 const password = ref('demo123')
 const name = ref('')
 const phone = ref('')

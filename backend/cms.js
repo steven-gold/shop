@@ -14,9 +14,9 @@ function defaultContacts(site) {
 
 function defaultSeo(site) {
   return {
-    title: `${site.name || '歐若拉公主童裝'} | ${site.english || 'AURORA'}`,
-    description: site.aboutLead || 'AURORA 歐若拉公主童裝，台灣專櫃精品童裝。',
-    keywords: '童裝,公主禮服,女童,男童,BABY,歐若拉,AURORA',
+    title: `${site.name || '里海寵物'} | ${site.english || 'RIKAI'}`,
+    description: site.aboutLead || '里海寵物 RIKAI，給毛孩真正需要的日常營養。',
+    keywords: '寵物食品,貓飼料,狗飼料,營養保健,寵物用品,里海寵物,RIKAI',
     ogImage: '',
     ogTitle: ''
   }
@@ -24,150 +24,165 @@ function defaultSeo(site) {
 
 function defaultHome() {
   return {
-    heading: '春夏新品上市',
-    subheading: 'Find your style. Spring / Summer 2026 Fashion',
-    aboutHeading: '永遠給寶貝最好的',
-    aboutScript: "Aurora's Clothing",
-    aboutButton: '+ About Us',
-    storesButton: '全台櫃位資訊',
-    blogHeading: '風格導覽 BLOG',
-    blogSubheading: '季節輪換總有新的故事值得期盼'
+    heading: '本週精選',
+    subheading: 'Fresh picks for cats & dogs',
+    aboutHeading: '用對的營養，陪毛孩走更長的路',
+    aboutScript: 'RIKAI Pets',
+    aboutButton: '關於里海',
+    storesButton: '門市據點',
+    blogHeading: '最新訊息',
+    blogSubheading: '飼養筆記、到貨公告與營養小知識'
+  }
+}
+
+function defaultShipping() {
+  return {
+    freeOver: 2000,
+    methods: [
+      { id: 'cvs', name: '超商取貨', fee: 60, enabled: true, hint: '7-ELEVEN / 全家 / 萊爾富，填寫門市名稱即可' },
+      { id: 'home', name: '寄送到府', fee: 120, enabled: true, hint: '台灣本島宅配，離島運費另計' },
+      { id: 'pickup', name: '門市自取', fee: 0, enabled: true, hint: '可至台北、台中、高雄門市取貨' }
+    ]
+  }
+}
+
+function defaultPayment() {
+  return {
+    methods: [
+      { id: 'online', name: '線上付款', enabled: true, hint: '示範站模擬金流，下單即標記為待付款確認' },
+      { id: 'card', name: '信用卡', enabled: true, hint: '示範站模擬刷卡，不會真的請款' },
+      { id: 'cod', name: '貨到付款', enabled: true, hint: '取貨或宅配時付款' }
+    ]
   }
 }
 
 function defaultPages() {
   return [
     {
-      id: 1, slug: 'home', menuName: '首頁', title: '歐若拉公主童裝', subtitle: 'AURORA',
+      id: 1, slug: 'home', menuName: '首頁', title: '里海寵物', subtitle: 'RIKAI',
       banner: '', image: '', content: '',
-      seoTitle: '歐若拉公主童裝 | AURORA',
-      seoDescription: 'AURORA 歐若拉公主童裝，台灣專櫃精品童裝。公主禮服、洋裝、男童與 BABY 系列。',
-      seoKeywords: '童裝,公主禮服,歐若拉', seoImage: '', extras: {}
+      seoTitle: '里海寵物 | RIKAI',
+      seoDescription: '里海寵物 RIKAI，貓狗主食、營養保健與日常用品。',
+      seoKeywords: '寵物食品,里海寵物', seoImage: '', extras: {}
     },
     {
-      id: 2, slug: 'about', menuName: '關於我們', title: '關於我們', subtitle: 'INTRODUCTION',
-      banner: '', image: 'https://images.unsplash.com/photo-1471286174890-9c112ffca5b4?auto=format&fit=crop&w=1400&q=80', content: '',
-      seoTitle: '關於我們 | 歐若拉公主童裝',
-      seoDescription: '歐若拉創立於 1992 年，台灣專櫃精品童裝。',
-      seoKeywords: '關於歐若拉,童裝品牌', seoImage: '',
+      id: 2, slug: 'about', menuName: '關於我們', title: '關於我們', subtitle: 'ABOUT',
+      banner: '', image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1400&q=80', content: '',
+      seoTitle: '關於我們 | 里海寵物',
+      seoDescription: '里海寵物專注貓狗日常營養與用品。',
+      seoKeywords: '關於里海,寵物品牌', seoImage: '',
       extras: {
-        storyHeading: '創業過程',
+        storyHeading: '我們為什麼開始',
         nameHeading: '品牌命名',
-        nameText: '「歐若拉」取極光之意，期許每一位穿上品牌服裝的孩子，都能在自己的舞台上發亮。女童走公主路線，男童走經典紳士，BABY 則把柔軟放在第一位。',
-        futureHeading: '品牌未來',
+        nameText: '「里海」取靠近海岸、潮汐穩定之意。我們希望毛孩的日常飲食像潮汐一樣可預期：成分清楚、份量好抓、回購不踩雷。',
+        futureHeading: '接下來',
         milestones: [
-          { year: '1992', text: '成立女童品牌歐若拉' },
-          { year: '1996', text: '成立男童紳士系列' },
-          { year: '2004', text: '全台百貨專櫃拓展' }
+          { year: '2018', text: '高雄左營成立工作室，先做貓主食諮詢' },
+          { year: '2021', text: '開出第一間門市，補上狗食與保健線' },
+          { year: '2025', text: '官網重啟，門市與宅配同一套庫存' }
         ]
       }
     },
     {
-      id: 3, slug: 'products', menuName: '產品介紹', title: '產品介紹', subtitle: 'PRODUCT',
+      id: 3, slug: 'products', menuName: '商品列表', title: '商品列表', subtitle: 'SHOP',
       banner: '', image: '', content: '',
-      seoTitle: '產品介紹 | 歐若拉公主童裝',
-      seoDescription: '瀏覽歐若拉公主禮服、洋裝、上衣、下著與 BABY 系列。',
-      seoKeywords: '童裝,公主禮服,洋裝', seoImage: '', extras: {}
+      seoTitle: '商品列表 | 里海寵物',
+      seoDescription: '瀏覽貓狗主食、飼料、保健與生活用品。',
+      seoKeywords: '貓飼料,狗飼料,寵物保健', seoImage: '', extras: {}
     },
     {
-      id: 4, slug: 'blog', menuName: '風格導覽 BLOG', title: '風格導覽 BLOG', subtitle: 'STYLE BLOG',
+      id: 4, slug: 'blog', menuName: '最新訊息', title: '最新訊息', subtitle: 'NEWS',
       banner: '', image: '', content: '',
-      seoTitle: '風格導覽 | 歐若拉公主童裝',
-      seoDescription: '季節輪換總有新的故事值得期盼。',
-      seoKeywords: '童裝穿搭,風格導覽', seoImage: '', extras: {}
+      seoTitle: '最新訊息 | 里海寵物',
+      seoDescription: '到貨公告、飼養筆記與營養小知識。',
+      seoKeywords: '寵物知識,到貨公告', seoImage: '', extras: {}
     },
     {
-      id: 5, slug: 'stores', menuName: '服務據點', title: '服務據點', subtitle: 'STORE LOCATIONS',
+      id: 5, slug: 'stores', menuName: '門市據點', title: '門市據點', subtitle: 'STORES',
       banner: '', image: '', content: '',
-      seoTitle: '服務據點 | 歐若拉公主童裝',
-      seoDescription: '全台百貨專櫃與門市據點。',
-      seoKeywords: '童裝專櫃,門市', seoImage: '', extras: {}
+      seoTitle: '門市據點 | 里海寵物',
+      seoDescription: '台北內湖、台中西屯、高雄左營門市。',
+      seoKeywords: '寵物門市', seoImage: '', extras: {}
     },
     {
       id: 6, slug: 'contact', menuName: '聯絡我們', title: '聯絡我們', subtitle: 'CONTACT',
       banner: '', image: '', content: '',
-      seoTitle: '聯絡我們 | 歐若拉公主童裝',
-      seoDescription: '歡迎來電或留言，專人為您服務。',
-      seoKeywords: '聯絡歐若拉', seoImage: '', extras: {}
+      seoTitle: '聯絡我們 | 里海寵物',
+      seoDescription: '商品諮詢、訂單與門市問題歡迎留言。',
+      seoKeywords: '聯絡里海', seoImage: '', extras: {}
     },
     {
-      id: 7, slug: 'faq', menuName: '購物須知', title: '購物須知', subtitle: 'FAQ',
+      id: 7, slug: 'faq', menuName: '購物須知', title: '購物須知', subtitle: 'GUIDE',
       banner: '', image: '', content: '',
-      seoTitle: '購物須知 | 歐若拉公主童裝',
-      seoDescription: '尺寸、退換貨與洗滌注意事項。',
-      seoKeywords: '購物須知,退換貨', seoImage: '', extras: {}
+      seoTitle: '購物須知 | 里海寵物',
+      seoDescription: '出貨、取貨、付款與退換貨說明。',
+      seoKeywords: '購物須知,運費,退換貨', seoImage: '', extras: {}
     },
     {
       id: 8, slug: 'privacy', menuName: '隱私權政策', title: '隱私權政策', subtitle: 'PRIVACY',
       banner: '', image: '',
-      content: '歐若拉公主童裝僅為完成訂單、會員服務與活動通知而蒐集您的姓名、聯絡方式與收件地址。資料不會出售給第三人。您可隨時來信要求查閱或刪除個人資料。',
-      seoTitle: '隱私權政策 | 歐若拉公主童裝',
-      seoDescription: '歐若拉公主童裝隱私權政策。',
+      content: '里海寵物僅為完成訂單、會員服務與到貨通知而蒐集您的姓名、聯絡方式與收件地址。資料不會出售給第三人。您可來信要求查閱或刪除個人資料。',
+      seoTitle: '隱私權政策 | 里海寵物',
+      seoDescription: '里海寵物隱私權政策。',
       seoKeywords: '隱私權', seoImage: '', extras: {}
     },
     {
       id: 9, slug: 'terms', menuName: '會員條款', title: '會員條款', subtitle: 'TERMS',
       banner: '', image: '',
-      content: '註冊即表示您同意遵守本站交易、退換貨與會員規範。帳號請妥善保管。特價與高訂商品之退換依專櫃公告為準。本條款以中華民國法律為準據法。',
-      seoTitle: '會員條款 | 歐若拉公主童裝',
-      seoDescription: '歐若拉公主童裝會員條款。',
+      content: '註冊即表示您同意本站交易、退換貨與會員規範。帳號請自行保管。生鮮與開封食品之退換依購物須知。本條款以中華民國法律為準據法。',
+      seoTitle: '會員條款 | 里海寵物',
+      seoDescription: '里海寵物會員條款。',
       seoKeywords: '會員條款', seoImage: '', extras: {}
     },
     {
-      id: 10, slug: 'subscribe', menuName: '童裝訂閱', title: '童裝訂閱', subtitle: 'WARDROBE CLUB',
+      id: 10, slug: 'subscribe', menuName: '飼養諮詢', title: '飼養諮詢', subtitle: 'CARE DESK',
       banner: '', image: '',
-      content: '1. 留下寶貝年齡與聯絡方式\n2. 造型顧問每季寄送 3-5 套穿搭提案\n3. 可到專櫃試穿後再決定留下哪些\n4. 會員可享當季新品優先預覽',
-      seoTitle: '童裝訂閱 | 歐若拉公主童裝',
-      seoDescription: '每季穿搭提案與新品優先預覽。',
-      seoKeywords: '童裝訂閱', seoImage: '', extras: {}
+      content: '1. 留下毛孩年齡、體重與目前飲食\n2. 門市顧問會回覆建議份量與轉換方式\n3. 需要時可改約門市當面看糧\n4. 會員可收到到貨與換季保健通知',
+      seoTitle: '飼養諮詢 | 里海寵物',
+      seoDescription: '貓狗飲食轉換與份量諮詢。',
+      seoKeywords: '飼養諮詢,寵物營養', seoImage: '', extras: {}
     }
   ]
 }
 
 function defaultMenus() {
   return [
-    { id: 1001, location: 'header', name: '關於我們', url: '/about', parentId: 0, sort: 1, visible: true },
-    { id: 1002, location: 'header', name: '風格導覽 BLOG', url: '/blog', parentId: 0, sort: 2, visible: true },
-    { id: 1003, location: 'header', name: '產品介紹', url: '/products', parentId: 0, sort: 3, visible: true },
-    { id: 1004, location: 'header', name: '服務據點', url: '/stores', parentId: 0, sort: 4, visible: true },
+    { id: 1001, location: 'header', name: '商品列表', url: '/products', parentId: 0, sort: 1, visible: true },
+    { id: 1002, location: 'header', name: '最新訊息', url: '/blog', parentId: 0, sort: 2, visible: true },
+    { id: 1003, location: 'header', name: '關於我們', url: '/about', parentId: 0, sort: 3, visible: true },
+    { id: 1004, location: 'header', name: '購物須知', url: '/faq', parentId: 0, sort: 4, visible: true },
     { id: 1005, location: 'header', name: '聯絡我們', url: '/contact', parentId: 0, sort: 5, visible: true },
-    { id: 1021, location: 'header', name: '所有消息', url: '/blog', parentId: 1002, sort: 1, visible: true },
-    { id: 1022, location: 'header', name: '年度設計理念', url: '/blog/10', parentId: 1002, sort: 2, visible: true },
-    { id: 1023, location: 'header', name: '浪漫唯美系列', url: '/blog/6', parentId: 1002, sort: 3, visible: true },
-    { id: 1024, location: 'header', name: '俏麗公主系列', url: '/blog/4', parentId: 1002, sort: 4, visible: true },
-    { id: 1025, location: 'header', name: '經典英倫系列', url: '/blog/5', parentId: 1002, sort: 5, visible: true },
-    { id: 1026, location: 'header', name: '韓風流行系列', url: '/blog/7', parentId: 1002, sort: 6, visible: true },
-    { id: 1027, location: 'header', name: '居家休閒系列', url: '/blog/8', parentId: 1002, sort: 7, visible: true },
-    { id: 1028, location: 'header', name: '率性可愛系列', url: '/blog/9', parentId: 1002, sort: 8, visible: true },
-    { id: 1031, location: 'header', name: '所有產品', url: '/products', parentId: 1003, sort: 1, visible: true },
-    { id: 1032, location: 'header', name: 'SALE', url: '/products/62', parentId: 1003, sort: 2, visible: true },
-    { id: 1033, location: 'header', name: '上衣', url: '/products/1', parentId: 1003, sort: 3, visible: true },
-    { id: 1034, location: 'header', name: '下著', url: '/products/2', parentId: 1003, sort: 4, visible: true },
-    { id: 1035, location: 'header', name: '洋裝', url: '/products/3', parentId: 1003, sort: 5, visible: true },
-    { id: 1036, location: 'header', name: '外套', url: '/products/4', parentId: 1003, sort: 6, visible: true },
-    { id: 1037, location: 'header', name: '男童', url: '/products/54', parentId: 1003, sort: 7, visible: true },
-    { id: 1038, location: 'header', name: '小童', url: '/products/46', parentId: 1003, sort: 8, visible: true },
-    { id: 1039, location: 'header', name: '配件', url: '/products/51', parentId: 1003, sort: 9, visible: true },
+    { id: 1031, location: 'header', name: '全部商品', url: '/products', parentId: 1001, sort: 1, visible: true },
+    { id: 1032, location: 'header', name: '貓貓專區', url: '/products/1', parentId: 1001, sort: 2, visible: true },
+    { id: 1033, location: 'header', name: '狗狗專區', url: '/products/2', parentId: 1001, sort: 3, visible: true },
+    { id: 1034, location: 'header', name: '營養保健', url: '/products/3', parentId: 1001, sort: 4, visible: true },
+    { id: 1035, location: 'header', name: '組合優惠', url: '/products/4', parentId: 1001, sort: 5, visible: true },
+    { id: 1036, location: 'header', name: '生活用品', url: '/products/5', parentId: 1001, sort: 6, visible: true },
+    { id: 1037, location: 'header', name: '特價專區', url: '/products/6', parentId: 1001, sort: 7, visible: true },
+    { id: 1021, location: 'header', name: '全部消息', url: '/blog', parentId: 1002, sort: 1, visible: true },
+    { id: 1022, location: 'header', name: '到貨公告', url: '/blog/1', parentId: 1002, sort: 2, visible: true },
+    { id: 1023, location: 'header', name: '飼養筆記', url: '/blog/2', parentId: 1002, sort: 3, visible: true },
+    { id: 1024, location: 'header', name: '營養知識', url: '/blog/3', parentId: 1002, sort: 4, visible: true },
     { id: 1101, location: 'footer', name: '關於我們', url: '/about', parentId: 0, sort: 1, visible: true },
-    { id: 1102, location: 'footer', name: '風格導覽 BLOG', url: '/blog', parentId: 0, sort: 2, visible: true },
-    { id: 1103, location: 'footer', name: '產品介紹', url: '/products', parentId: 0, sort: 3, visible: true },
-    { id: 1104, location: 'footer', name: '服務據點', url: '/stores', parentId: 0, sort: 4, visible: true },
+    { id: 1102, location: 'footer', name: '商品列表', url: '/products', parentId: 0, sort: 2, visible: true },
+    { id: 1103, location: 'footer', name: '最新訊息', url: '/blog', parentId: 0, sort: 3, visible: true },
+    { id: 1104, location: 'footer', name: '門市據點', url: '/stores', parentId: 0, sort: 4, visible: true },
     { id: 1105, location: 'footer', name: '聯絡我們', url: '/contact', parentId: 0, sort: 5, visible: true },
     { id: 1201, location: 'footer-member', name: '購物車', url: '/cart', parentId: 0, sort: 1, visible: true },
     { id: 1202, location: 'footer-member', name: '會員中心', url: '/member', parentId: 0, sort: 2, visible: true },
-    { id: 1203, location: 'footer-member', name: '購物須知', url: '/faq', parentId: 0, sort: 3, visible: true },
-    { id: 1204, location: 'footer-member', name: '隱私權政策', url: '/privacy', parentId: 0, sort: 4, visible: true },
-    { id: 1205, location: 'footer-member', name: '童裝訂閱', url: '/subscribe', parentId: 0, sort: 5, visible: true }
+    { id: 1203, location: 'footer-member', name: '訂單查詢', url: '/order-lookup', parentId: 0, sort: 3, visible: true },
+    { id: 1204, location: 'footer-member', name: '購物須知', url: '/faq', parentId: 0, sort: 4, visible: true },
+    { id: 1205, location: 'footer-member', name: '隱私權政策', url: '/privacy', parentId: 0, sort: 5, visible: true }
   ]
 }
 
 const HOME_CATS = {
-  61: { showOnHome: true, homeSort: 1, homeTitle: 'BABY / 小童', image: 'https://images.unsplash.com/photo-1522771930-78848d9293e8?auto=format&fit=crop&w=900&q=80' },
-  20: { showOnHome: true, homeSort: 2, homeTitle: '公主禮服', image: 'https://images.unsplash.com/photo-1514090458221-65bb69cf63e6?auto=format&fit=crop&w=900&q=80' },
-  8: { showOnHome: true, homeSort: 3, homeTitle: '長褲', image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=900&q=80' },
-  6: { showOnHome: true, homeSort: 4, homeTitle: '短袖上衣', image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=900&q=80' },
-  54: { showOnHome: true, homeSort: 5, homeTitle: '男童系列', image: 'https://images.unsplash.com/photo-1503919545889-aef636e10ad4?auto=format&fit=crop&w=900&q=80' },
-  19: { showOnHome: true, homeSort: 6, homeTitle: '長裙 / 短裙', image: 'https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=900&q=80' }
+  1: { showOnHome: true, homeSort: 1, homeTitle: '貓貓專區', image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=900&q=80' },
+  2: { showOnHome: true, homeSort: 2, homeTitle: '狗狗專區', image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=900&q=80' },
+  3: { showOnHome: true, homeSort: 3, homeTitle: '營養保健', image: 'https://images.unsplash.com/photo-1583337130417-13406c109799?auto=format&fit=crop&w=900&q=80' },
+  4: { showOnHome: true, homeSort: 4, homeTitle: '組合優惠', image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&w=900&q=80' },
+  5: { showOnHome: true, homeSort: 5, homeTitle: '生活用品', image: 'https://images.unsplash.com/photo-1589924691995-400dc9dec37b?auto=format&fit=crop&w=900&q=80' },
+  6: { showOnHome: true, homeSort: 6, homeTitle: '特價專區', image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=900&q=80' }
 }
 
 function enrichCategory(c) {
@@ -214,9 +229,9 @@ function categoryFromBody(b, id) {
 
 function migrate(data) {
   data.site = data.site || {}
-  ensure(data.site, 'logo', '/logo.png')
-  ensure(data.site, 'favicon', '/logo.png')
-  ensure(data.site, 'english', 'AURORA')
+  ensure(data.site, 'logo', '/logo.svg')
+  ensure(data.site, 'favicon', '/logo.svg')
+  ensure(data.site, 'english', 'RIKAI')
   if (!data.site.seo) data.site.seo = defaultSeo(data.site)
   else {
     const d = defaultSeo(data.site)
@@ -229,6 +244,14 @@ function migrate(data) {
   }
   if (!Array.isArray(data.site.contacts) || !data.site.contacts.length) {
     data.site.contacts = defaultContacts(data.site)
+  }
+  if (!data.site.shipping || !Array.isArray(data.site.shipping.methods) || !data.site.shipping.methods.length) {
+    data.site.shipping = defaultShipping()
+  } else {
+    ensure(data.site.shipping, 'freeOver', 2000)
+  }
+  if (!data.site.payment || !Array.isArray(data.site.payment.methods) || !data.site.payment.methods.length) {
+    data.site.payment = defaultPayment()
   }
   data.categories = (data.categories || []).map(enrichCategory)
   data.newsCategories = (data.newsCategories || []).map((c) => ({
@@ -255,8 +278,15 @@ function migrate(data) {
   }
   if (!Array.isArray(data.menus) || !data.menus.length) data.menus = defaultMenus()
   if (!data.nextId || data.nextId < 3000) data.nextId = 3000
-  data.cmsVersion = 2
+  data.cmsVersion = 3
   return data
 }
 
-module.exports = { migrate, categoryFromBody, defaultPages, defaultMenus }
+module.exports = {
+  migrate,
+  categoryFromBody,
+  defaultPages,
+  defaultMenus,
+  defaultShipping,
+  defaultPayment
+}

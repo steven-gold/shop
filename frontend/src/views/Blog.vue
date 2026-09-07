@@ -1,6 +1,6 @@
 <template>
   <main>
-    <PageHero :title="page.title || '風格導覽 BLOG'" :subtitle="page.subtitle || 'STYLE BLOG'" crumb="HOME / 風格導覽" :banner="page.banner" />
+    <PageHero :title="page.title || '最新訊息'" :subtitle="page.subtitle || 'NEWS'" crumb="HOME / 最新訊息" :banner="page.banner" />
     <div class="wide layout-2">
       <aside class="side">
         <router-link to="/blog" :class="{ active: !route.params.category }">所有消息</router-link>

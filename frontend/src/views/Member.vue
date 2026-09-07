@@ -14,8 +14,9 @@
         <div>
           <h3 class="serif">我的訂單</h3>
           <article v-for="o in orders" :key="o.id" class="card" style="margin-bottom:12px">
-            <b>#{{ o.id }}</b>　{{ o.status }}　{{ money(o.total) }}
-            <p v-for="i in o.items" :key="i.productId + i.size">{{ i.name }} × {{ i.qty }}</p>
+            <b>{{ o.orderNo || ('#' + o.id) }}</b>　{{ o.status }}　{{ money(o.total) }}
+            <p>{{ o.shippingLabel }}　{{ o.paymentLabel }}　運費 {{ money(o.shippingFee) }}</p>
+            <p v-for="i in o.items" :key="i.productId + i.size">{{ i.name }} {{ i.size }} × {{ i.qty }}</p>
           </article>
         </div>
       </div>
@@ -33,7 +34,7 @@ const ok = ref(false)
 onMounted(async () => { orders.value = await api('/api/orders') })
 async function save() {
   state.user = await api('/api/auth/profile', { method: 'PUT', body: JSON.stringify(form) })
-  localStorage.setItem('aurora_user', JSON.stringify(state.user))
+  localStorage.setItem('rikai_user', JSON.stringify(state.user))
   ok.value = true
 }
 function out() {

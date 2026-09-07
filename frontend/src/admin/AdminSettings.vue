@@ -5,7 +5,8 @@
       <button class="ghost-btn" :class="{ on: tab==='brand' }" @click="tab='brand'">品牌</button>
       <button class="ghost-btn" :class="{ on: tab==='contact' }" @click="tab='contact'">聯絡資訊</button>
       <button class="ghost-btn" :class="{ on: tab==='home' }" @click="tab='home'">首頁文案</button>
-      <button class="ghost-btn" :class="{ on: tab==='seo' }" @click="tab='seo'">全站 SEO</button>
+        <button class="ghost-btn" :class="{ on: tab==='ship' }" @click="tab='ship'">出貨與付款</button>
+        <button class="ghost-btn" :class="{ on: tab==='seo' }" @click="tab='seo'">全站 SEO</button>
     </div>
     <p v-if="err" class="ok">{{ err }}</p>
     <form class="form wide card" v-if="site" @submit.prevent="save">
@@ -42,6 +43,23 @@
         <input v-model="site.home.blogHeading" placeholder="BLOG 標題" />
         <input v-model="site.home.blogSubheading" placeholder="BLOG 副標" />
       </template>
+      <template v-else-if="tab==='ship'">
+        <p class="hint">運費會加進結帳應付金額。滿額免運不套用在門市自取（自取本來就是 0）。線上付款與刷卡為示範，不會真的請款。</p>
+        <input v-model.number="site.shipping.freeOver" type="number" placeholder="滿額免運門檻，0 表示不啟用" />
+        <h3 class="serif">出貨方式</h3>
+        <div class="contact-row" v-for="(m, i) in site.shipping.methods" :key="m.id || i">
+          <input v-model="m.name" placeholder="名稱，如 超商取貨" />
+          <input v-model.number="m.fee" type="number" placeholder="運費" />
+          <input v-model="m.hint" placeholder="說明" />
+          <label><input type="checkbox" v-model="m.enabled" /> 啟用</label>
+        </div>
+        <h3 class="serif">付款方式</h3>
+        <div class="contact-row" v-for="(m, i) in site.payment.methods" :key="m.id || i">
+          <input v-model="m.name" placeholder="名稱，如 貨到付款" />
+          <input v-model="m.hint" placeholder="說明" />
+          <label><input type="checkbox" v-model="m.enabled" /> 啟用</label>
+        </div>
+      </template>
       <template v-else>
         <input v-model="site.seo.title" placeholder="預設網頁標題" />
         <textarea v-model="site.seo.description" placeholder="預設 Description"></textarea>
@@ -69,6 +87,10 @@ onMounted(async () => {
     site.value.contacts = site.value.contacts || []
     site.value.seo = site.value.seo || {}
     site.value.home = site.value.home || {}
+    site.value.shipping = site.value.shipping || { freeOver: 2000, methods: [] }
+    site.value.payment = site.value.payment || { methods: [] }
+    if (!site.value.shipping.methods) site.value.shipping.methods = []
+    if (!site.value.payment.methods) site.value.payment.methods = []
   } catch (e) { err.value = e.message }
 })
 function addContact() {

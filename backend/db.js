@@ -64,11 +64,12 @@ async function load() {
       return data
     }
     let data = rows[0].payload
-    if ((data.cmsVersion || 0) < 2) {
-      data = migrate(data)
+    if ((data.cmsVersion || 0) < 3) {
+      data = seedData()
       await save(data)
+      return data
     }
-    return data
+    return migrate(data)
   }
   if (!fs.existsSync(DATA_PATH)) {
     const data = seedData()
@@ -76,12 +77,12 @@ async function load() {
     return data
   }
   const data = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'))
-  if ((data.cmsVersion || 0) < 2) {
-    const migrated = migrate(data)
-    fs.writeFileSync(DATA_PATH, JSON.stringify(migrated, null, 2))
-    return migrated
+  if ((data.cmsVersion || 0) < 3) {
+    const seeded = seedData()
+    fs.writeFileSync(DATA_PATH, JSON.stringify(seeded, null, 2))
+    return seeded
   }
-  return data
+  return migrate(data)
 }
 
 async function save(data) {

@@ -14,6 +14,7 @@ const routes = [
   { path: '/privacy', component: () => import('./views/Legal.vue') },
   { path: '/terms', component: () => import('./views/Legal.vue') },
   { path: '/subscribe', component: () => import('./views/Subscribe.vue') },
+  { path: '/order-lookup', component: () => import('./views/OrderLookup.vue') },
   { path: '/search', component: () => import('./views/Search.vue') },
   { path: '/cart', component: () => import('./views/Cart.vue'), meta: { auth: true } },
   { path: '/checkout', component: () => import('./views/Checkout.vue'), meta: { auth: true } },

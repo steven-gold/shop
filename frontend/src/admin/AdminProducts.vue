@@ -11,8 +11,8 @@
       <input v-model.number="edit.price" placeholder="原價" type="number" />
       <input v-model.number="edit.salePrice" placeholder="售價" type="number" />
       <input v-model.number="edit.stock" placeholder="庫存" type="number" />
-      <input v-model="edit.color" placeholder="顏色" />
-      <input v-model="edit.sizes" placeholder="尺寸，逗號分隔" />
+      <input v-model="edit.color" placeholder="口味 / 顏色" />
+      <input v-model="edit.sizes" placeholder="規格，逗號分隔" />
       <ImageField v-model="edit.image" placeholder="商品圖片" />
       <textarea v-model="edit.desc" placeholder="介紹"></textarea>
       <label><input type="checkbox" v-model="edit.featured" /> 精選</label>
@@ -42,8 +42,8 @@
                 <input v-model.number="edit.price" placeholder="原價" type="number" />
                 <input v-model.number="edit.salePrice" placeholder="售價" type="number" />
                 <input v-model.number="edit.stock" placeholder="庫存" type="number" />
-                <input v-model="edit.color" placeholder="顏色" />
-                <input v-model="edit.sizes" placeholder="尺寸，逗號分隔" />
+                <input v-model="edit.color" placeholder="口味 / 顏色" />
+                <input v-model="edit.sizes" placeholder="規格，逗號分隔" />
                 <ImageField v-model="edit.image" placeholder="商品圖片" />
                 <textarea v-model="edit.desc" placeholder="介紹"></textarea>
                 <label><input type="checkbox" v-model="edit.featured" /> 精選</label>

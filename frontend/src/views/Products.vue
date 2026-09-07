@@ -1,10 +1,10 @@
 <template>
   <main>
-    <PageHero :title="title" :subtitle="subtitle" crumb="HOME / 產品介紹" :banner="banner" />
+    <PageHero :title="title" :subtitle="subtitle" crumb="HOME / 商品列表" :banner="banner" />
     <div class="wide layout-2">
       <aside class="side">
-        <div class="parent">產品分類</div>
-        <router-link to="/products" :class="{ active: !route.params.category }">所有產品</router-link>
+        <div class="parent">商品分類</div>
+        <router-link to="/products" :class="{ active: !route.params.category }">全部商品</router-link>
         <template v-for="c in tree" :key="c.id">
           <router-link :to="`/products/${c.id}`" class="parent" :class="{ active: Number(route.params.category) === c.id }">{{ c.menuName || c.name }}</router-link>
           <router-link v-for="ch in c.children" :key="ch.id" class="child" :to="`/products/${ch.id}`" :class="{ active: Number(route.params.category) === ch.id }">{{ ch.menuName || ch.name }}</router-link>
@@ -48,7 +48,7 @@ const currentCat = computed(() => {
   return tree.value.flatMap((c) => [c, ...c.children]).find((c) => c.id === id)
 })
 const cmsPage = computed(() => pageBySlug('products'))
-const title = computed(() => currentCat.value?.pageTitle || currentCat.value?.name || cmsPage.value.title || '產品介紹')
+const title = computed(() => currentCat.value?.pageTitle || currentCat.value?.name || cmsPage.value.title || '商品列表')
 const subtitle = computed(() => currentCat.value?.pageSubtitle || cmsPage.value.subtitle || 'PRODUCT')
 const banner = computed(() => currentCat.value?.banner || cmsPage.value.banner || '')
 const pages = computed(() => {

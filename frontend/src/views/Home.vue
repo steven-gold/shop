@@ -28,11 +28,23 @@
             <div class="meta">
               <div>
                 <b>{{ t.title }}</b><br />
-                <span>+ More Aurora</span>
+                <span>看商品</span>
               </div>
               <div class="count">{{ t.count }}</div>
             </div>
           </router-link>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" v-if="home?.featured?.length">
+      <div class="wide">
+        <div class="center-title">
+          <h2>精選商品</h2>
+          <p>門市與官網同一批貨</p>
+        </div>
+        <div class="product-grid">
+          <ProductCard v-for="p in home.featured" :key="p.id" :p="p" />
         </div>
       </div>
     </section>
@@ -72,6 +84,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import ProductCard from '../components/ProductCard.vue'
 import { api, pageBySlug } from '../api'
 
 const home = ref(null)
